@@ -22,8 +22,8 @@ import datetime
 url = "https://api.slangapp.com/challenges/v1/activities"
 
 # the authentication header
-headers = {'Authorization':  'Basic '
-                             'NjU6ckRjd2VyL1BicXN1OGdEMUtGMFFja2JrWWJ3TFNjN2tRbUZ4bXJoQndsUT0='}
+headers = {'Authorization': 'Basic '
+                            'NjU6ckRjd2VyL1BicXN1OGdEMUtGMFFja2JrWWJ3TFNjN2tRbUZ4bXJoQndsUT0='}
 
 # obtain the user activites response from the API
 user_activities = requests.get(url, headers=headers).json()
@@ -33,6 +33,7 @@ activity_arr = user_activities['activities']
 
 # dictionary to store the activities, dictionary to store all activites for a given user
 activities_dict, user_activities_dict, user_sessions = dict(), dict(), dict()
+
 
 # insert all activities
 def insert_activites():
@@ -84,6 +85,7 @@ def insert_activites():
             heappush(user_activities_dict[f"{user_id}"],
                      (activity.first_seen_at, activity.id))
 
+
 def build_user_sessions():
     """
     Part 2: Processing
@@ -117,39 +119,56 @@ def build_user_sessions():
         # pop the first activity for the current user
         prev_activity = heappop(k)
 
+        # start a new session
+        # prev_actvity[1] contains the activity id
+        activities = new_session(activities, prev_activity[1])
+
         # the start time of the session
         start = activities_dict[f"{prev_activity[1]}"][2]
 
-        # for all keys in the dictionary of users
+        # counter to keep track of the activities that have already been added to the session
+        added_counter = 1
+
+        # while not all activites have been added to the session
         print(f"====> {key}")
-        while len(k) > 0:
+        while added_counter < num_activities:
 
             # the "answered_at" attribute of the previous activity
             end_act_1 = activities_dict[f"{prev_activity[1]}"][3]
 
-            # obtain the current activity at the top of the heap
-            curr_activity = heappop(k)
-            start_act_2 = activities_dict[f"{curr_activity[1]}"][2]
+            # if there is at least one other activity in the heap...
+            # handles edge case for when the previous "first_activity" was the second-to-last
+            # activity.
+            if len(k) > 0:
 
-            # calculate how much time is between the previous and current sessions
-            gap = start_act_2.timestamp() - end_act_1.timestamp()
+                # obtain the current activity at the top of the heap
+                curr_activity = heappop(k)
+                start_act_2 = activities_dict[f"{curr_activity[1]}"][2]
 
-            # if the gap is exceeded, create a dictionary of the current session
-            if gap >= 300:
+                # calculate how much time is between the previous and current sessions
+                gap = start_act_2.timestamp() - end_act_1.timestamp()
 
-                # the time the session ends is the time the previous activity ended
-                end = activities_dict[f'{prev_activity[1]}'][3]
+                # if the gap is exceeded, create a dictionary of the current session
+                if gap >= 300:
+                    # the time the session ends is the time the previous activity ended
+                    end = activities_dict[f'{prev_activity[1]}'][3]
 
-                # create the dictionary for the current session
-                session_dictionary = create_session_dictionary(end, start, activities)
+                    # create the dictionary for the current session
+                    session_dictionary = create_session_dictionary(end, start, activities)
 
-                # append the dictioanry to the current user's sessions array
-                session_arr.append(session_dictionary)
-                print(session_dictionary)
+                    # append the dictioanry to the current user's sessions array
+                    session_arr.append(session_dictionary)
+                    print(session_dictionary)
 
-            prev_activity = curr_activity
+                    # add the current activity to the activities list since it will be the first
+                    # activity in the next session
+                    activities = new_session(activities, curr_activity[1])
+                    added_counter += 1
 
+                    # the start time of the new session
+                    start = activities_dict[f"{curr_activity[1]}"][2]
 
+                prev_activity = curr_activity
 
 
 def create_session_dictionary(end, start, activities):
@@ -169,6 +188,22 @@ def create_session_dictionary(end, start, activities):
     }
 
     return my_dictionary
+
+
+def new_session(activities_arr, activity_id):
+    """
+    Creates a new session by clearing the activities array and appending the current activity_id
+    onto the new session activities list.
+
+    :param activities_arr: the array containing all activity ids of the current session
+    :param activity_id: the activity id of the current activity
+    :return: the array containing the activity ids
+    """
+    activities_arr.clear()
+    activities_arr.append(activity_id)
+
+    return activities_arr
+
 
 insert_activites()
 build_user_sessions()
