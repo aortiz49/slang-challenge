@@ -140,7 +140,7 @@ def build_user_sessions():
             if len(k) == 0 and added_counter == 0:
                 last = new_session_dictionary(end_act_1, start, [prev_activity[1]])
                 session_arr.append(last)
-                finalize_entry(key,session_arr)
+                finalize_entry(key, session_arr)
                 break
 
             # if there is at least one other activity in the heap...
@@ -211,6 +211,7 @@ def build_user_sessions():
 
                 # the current activity will become the previous activity for the next session
                 prev_activity = curr_activity
+    return user_sessions
 
 
 def finalize_entry(key, session_arr):
@@ -252,6 +253,17 @@ def new_session(activities_arr, activity_id):
     return activities_arr
 
 
+# inserts the activities into my data structures
 insert_activites()
-build_user_sessions()
-print()
+
+# builds the user sessions
+final_user_sessions = {"user_sessions": build_user_sessions()}
+
+# posts the user sessions to the endpoint
+url = 'https://api.jsonbin.io/v3/b'
+headers = {
+  'Content-Type': 'application/json',
+  'X-Master-Key': '$2b$10$eNZZla1NZerI/bUfR5eKo.X6wHStWqk7FVfcMozrKR9dKXLaECzyC'
+}
+
+req = requests.post(url, json=final_user_sessions, headers=headers)
