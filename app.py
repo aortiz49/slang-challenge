@@ -63,18 +63,23 @@ def insert_activites():
         end_time = datetime.datetime.fromisoformat(
             activity_arr[i]['answered_at'])
 
-        # create a namedtuple with attributes for a given activity_id
+        # create a namedtuple with attributes for a given activity_id. This makes it easier to
+        # know which data is which.
         activity = Activity(activity_id, user_id, start_time, end_time)
 
         # store the activity in the dictionary
         activities_dict[f"{activity_id}"] = activity
 
+        # when a user's id is not a key in the dictionary, create a new array and push the
+        # activity onto the min-heap for this user
         if user_activities_dict.get(f"{user_id}") is None:
             h = []
             user_activities_dict[f"{user_id}"] = h
             heappush(user_activities_dict[f"{user_id}"],
                      (activity.first_seen_at, activity.id))
 
+        # if a user's id is already a key in the dictionary, push the tuple with the activity
+        # into the min-heap
         else:
             heappush(user_activities_dict[f"{user_id}"],
                      (activity.first_seen_at, activity.id))
