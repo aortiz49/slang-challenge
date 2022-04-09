@@ -84,5 +84,26 @@ def insert_activites():
             heappush(user_activities_dict[f"{user_id}"],
                      (activity.first_seen_at, activity.id))
 
+def build_user_sessions():
+    """
+    Part 2: Processing
+
+    This iterates over each key in the dictionary that stores the list of activities and
+    calculates the time between successive activites. If this gap time exceeds 5 minutes (300
+    seconds) then the subsequent activity gets logged as a unique session. The process is
+    repeated for each user until he/she has no more activities.
+
+
+    Regardless of there being m users and an arbitrary amount of activites associated to each user,
+    there are still n activities; they are simply distributed between the users.
+
+    The time complexity to pop n activites from their heaps is O(nlogn).
+
+    """
+    for key in user_activities_dict.keys():
+
+        print(key)
+
 insert_activites()
+build_user_sessions()
 print()
