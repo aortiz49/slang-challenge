@@ -19,17 +19,17 @@ import requests
 import datetime
 
 # the url from where the API is to be consumed
-url = "https://api.slangapp.com/challenges/v1/activities"
+url = "https://api.jsonbin.io/v3/b/6251f487d8a4cc06909e69c0"
 
 # the authentication header
-headers = {'Authorization': 'Basic '
-                            'NjU6ckRjd2VyL1BicXN1OGdEMUtGMFFja2JrWWJ3TFNjN2tRbUZ4bXJoQndsUT0='}
+headers = {
+    'X-Access-Key': '$2b$10$taOai4PP3sjFlpmcbq1pFu92x1OUEhtp80PS25yr56pnJwlT/V8US'}
 
 # obtain the user activites response from the API
 user_activities = requests.get(url, headers=headers).json()
 
 # the python array containing all activites
-activity_arr = user_activities['activities']
+activity_arr = user_activities['record']['activities']
 
 # dictionary to store the activities, dictionary to store all activites for a given user
 activities_dict, user_activities_dict, user_sessions = dict(), dict(), dict()
@@ -119,7 +119,7 @@ def build_user_sessions():
         # pop the first activity for the current user
         prev_activity = heappop(k)
 
-        # start a new session
+        # start a new session by adding the first session activity to the list
         # prev_actvity[1] contains the activity id
         activities = new_session(activities, prev_activity[1])
 
@@ -127,14 +127,20 @@ def build_user_sessions():
         start = activities_dict[f"{prev_activity[1]}"][2]
 
         # counter to keep track of the activities that have already been added to the session
-        added_counter = 1
+        added_counter = 0
 
         # while not all activites have been added to the session
         print(f"====> {key}")
-        while added_counter < num_activities:
+        while 1:
 
             # the "answered_at" attribute of the previous activity
             end_act_1 = activities_dict[f"{prev_activity[1]}"][3]
+
+            # if there is only one activity for the user
+            if len(k) == 0 and added_counter == 0:
+                last = new_session_dictionary(end_act_1, start, [prev_activity[1]])
+                session_arr.append(last)
+                break
 
             # if there is at least one other activity in the heap...
             # handles edge case for when the previous "first_activity" was the second-to-last
@@ -148,25 +154,51 @@ def build_user_sessions():
                 # calculate how much time is between the previous and current sessions
                 gap = start_act_2.timestamp() - end_act_1.timestamp()
 
-                # if the gap is exceeded, create a dictionary of the current session
-                if gap >= 300:
+                # if we popped off all activities and the gap between the last two session is less
+                # than 300, add the current activity to the current session. This is to handle the
+                # edge case in which the last activity is part of the current session
+                if len(k) == 0 and gap < 300:
+                    activities.append(curr_activity[1])
+
+                # if the gap exceeds the allotted time limit between activites to remain in the
+                # current session or if we have popped off all the activites, create the
+                # dictioanry of the session
+                if gap >= 300 or (len(k) == 0):
                     # the time the session ends is the time the previous activity ended
                     end = activities_dict[f'{prev_activity[1]}'][3]
 
                     # create the dictionary for the current session
-                    session_dictionary = create_session_dictionary(end, start, activities)
+                    session_dictionary = new_session_dictionary(end, start, activities)
 
                     # append the dictioanry to the current user's sessions array
                     session_arr.append(session_dictionary)
                     print(session_dictionary)
 
-                    # add the current activity to the activities list since it will be the first
-                    # activity in the next session
-                    activities = new_session(activities, curr_activity[1])
-                    added_counter += 1
+                    # if the current activity has already been added to the session list and we
+                    # have already popped off the last activity, do not create a new session.
+                    if curr_activity[1] in activities and len(k) == 0:
+                        break
 
-                    # the start time of the new session
-                    start = activities_dict[f"{curr_activity[1]}"][2]
+                        # if the current activity is not in the session list and we have already
+                        # popped off the last activity, this means this last activity is more than 5
+                        # minutes after the previous activity and will have to be its own session
+                    elif curr_activity[1] not in activities and len(k) == 0:
+                        end = activities_dict[f"{curr_activity[1]}"][3]
+                        last = new_session_dictionary(end, start_act_2, [curr_activity[1]])
+                        session_arr.append(last)
+                        print(last)
+                        break
+
+                    # default case if the length of the min-heap is not 0 and if the gap between
+                    # sessions is < 300 seconds
+                    else:
+                        # add the current activity to the activities list since it will be the first
+                        # activity in the next session
+                        activities = new_session(activities, curr_activity[1])
+                        added_counter += 1
+
+                        # the start time of the new session
+                        start = activities_dict[f"{curr_activity[1]}"][2]
 
                 # if the time between activities is less than 300 seconds, add it to the list of
                 # activities for the current user session
@@ -178,7 +210,7 @@ def build_user_sessions():
                 prev_activity = curr_activity
 
 
-def create_session_dictionary(end, start, activities):
+def new_session_dictionary(end, start, activities):
     """
     Creates a dictionary for a user session.
 
