@@ -13,7 +13,7 @@ file to create a dictionary of user ids and their groups their respective sessio
 their activities if the time between activities exceeds 5 minutes.
 """
 
-from heapq import heappush
+from heapq import heappush, heappop
 from collections import namedtuple
 import requests
 import datetime
@@ -102,7 +102,29 @@ def build_user_sessions():
     """
     for key in user_activities_dict.keys():
 
-        print(key)
+        # obtain the min-heap for the current user
+        k = user_activities_dict[f"{key}"]
+
+        # array that contains all session dictionaries for the current user
+        session_arr = []
+
+        # array that contains the activities of the current session for the current user
+        activities = []
+
+        # initial number of activities
+        num_activities = len(k)
+
+        # pop the first activity for the current user
+        prev_activity = heappop(k)
+
+        # the start time of the session
+        start = activities_dict[f"{prev_activity[1]}"][2]
+
+        # for all keys in the dictionary of users
+        print(f"====> {key}")
+        while len(k) > 0:
+            curr_activity = heappop(k)
+            print(f"--{curr_activity[1]}")
 
 insert_activites()
 build_user_sessions()
