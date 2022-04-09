@@ -134,12 +134,41 @@ def build_user_sessions():
             # calculate how much time is between the previous and current sessions
             gap = start_act_2.timestamp() - end_act_1.timestamp()
 
-            print(gap)
-
+            # if the gap is exceeded, create a dictionary of the current session
             if gap >= 300:
-                print("gap between activity1 and activity 2 is too big")
+
+                # the time the session ends is the time the previous activity ended
+                end = activities_dict[f'{prev_activity[1]}'][3]
+
+                # create the dictionary for the current session
+                session_dictionary = create_session_dictionary(end, start, activities)
+
+                # append the dictioanry to the current user's sessions array
+                session_arr.append(session_dictionary)
+                print(session_dictionary)
 
             prev_activity = curr_activity
+
+
+
+
+def create_session_dictionary(end, start, activities):
+    """
+    Creates a dictionary for a user session.
+
+    :param end: the datetime at which the session ended
+    :param start: the datetime at which the session started
+    :param activities: the list of activities included in the current user session
+    :return: a dictionary with the pertinent session information
+    """
+    my_dictionary = {
+        "ended_at": f"{end}",
+        "started_at": f"{start}",
+        "activity_ids": f"{activities}",
+        "duration_seconds": f"{end.timestamp() - start.timestamp()}"
+    }
+
+    return my_dictionary
 
 insert_activites()
 build_user_sessions()
