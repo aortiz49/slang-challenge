@@ -259,11 +259,6 @@ insert_activites()
 # builds the user sessions
 final_user_sessions = {"user_sessions": build_user_sessions()}
 
-# posts the user sessions to the endpoint
-url = 'https://api.jsonbin.io/v3/b'
-headers = {
-  'Content-Type': 'application/json',
-  'X-Master-Key': '$2b$10$eNZZla1NZerI/bUfR5eKo.X6wHStWqk7FVfcMozrKR9dKXLaECzyC'
-}
-
-req = requests.post(url, json=final_user_sessions, headers=headers)
+# posts the user_sessions json to the endpoint
+req = requests.post(url + "/sessions", headers=headers, json=final_user_sessions)
+print(req)
