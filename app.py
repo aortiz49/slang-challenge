@@ -18,18 +18,18 @@ from collections import namedtuple
 import requests
 import datetime
 
-# the url from where the API is to be consumed
-url = "https://api.jsonbin.io/v3/b/6251f487d8a4cc06909e69c0"
+#  the url from where the API is to be consumed
+url = "https://api.slangapp.com/challenges/v1/activities"
 
 # the authentication header
-headers = {
-    'X-Access-Key': '$2b$10$taOai4PP3sjFlpmcbq1pFu92x1OUEhtp80PS25yr56pnJwlT/V8US'}
+headers = {'Authorization': 'Basic '
+                            'NjU6ckRjd2VyL1BicXN1OGdEMUtGMFFja2JrWWJ3TFNjN2tRbUZ4bXJoQndsUT0='}
 
 # obtain the user activites response from the API
 user_activities = requests.get(url, headers=headers).json()
 
 # the python array containing all activites
-activity_arr = user_activities['record']['activities']
+activity_arr = user_activities['activities']
 
 # dictionary to store the activities, dictionary to store all activites for a given user
 activities_dict, user_activities_dict, user_sessions = dict(), dict(), dict()
@@ -140,6 +140,7 @@ def build_user_sessions():
             if len(k) == 0 and added_counter == 0:
                 last = new_session_dictionary(end_act_1, start, [prev_activity[1]])
                 session_arr.append(last)
+                finalize_entry(key,session_arr)
                 break
 
             # if there is at least one other activity in the heap...
@@ -177,6 +178,7 @@ def build_user_sessions():
                     # if the current activity has already been added to the session list and we
                     # have already popped off the last activity, do not create a new session.
                     if curr_activity[1] in activities and len(k) == 0:
+                        finalize_entry(key, session_arr)
                         break
 
                         # if the current activity is not in the session list and we have already
@@ -187,6 +189,7 @@ def build_user_sessions():
                         last = new_session_dictionary(end, start_act_2, [curr_activity[1]])
                         session_arr.append(last)
                         print(last)
+                        finalize_entry(key, session_arr)
                         break
 
                     # default case if the length of the min-heap is not 0 and if the gap between
@@ -208,6 +211,11 @@ def build_user_sessions():
 
                 # the current activity will become the previous activity for the next session
                 prev_activity = curr_activity
+
+
+def finalize_entry(key, session_arr):
+    global user_sessions
+    user_sessions[f"{key}"] = session_arr
 
 
 def new_session_dictionary(end, start, activities):
