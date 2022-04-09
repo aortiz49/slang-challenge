@@ -168,6 +168,13 @@ def build_user_sessions():
                     # the start time of the new session
                     start = activities_dict[f"{curr_activity[1]}"][2]
 
+                # if the time between activities is less than 300 seconds, add it to the list of
+                # activities for the current user session
+                else:
+                    activities.append(curr_activity[1])
+                    added_counter += 1
+
+                # the current activity will become the previous activity for the next session
                 prev_activity = curr_activity
 
 
