@@ -75,5 +75,9 @@ def insert_activites():
             heappush(user_activities_dict[f"{user_id}"],
                      (activity.first_seen_at, activity.id))
 
+        else:
+            heappush(user_activities_dict[f"{user_id}"],
+                     (activity.first_seen_at, activity.id))
+
 insert_activites()
 print()
