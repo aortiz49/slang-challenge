@@ -123,8 +123,23 @@ def build_user_sessions():
         # for all keys in the dictionary of users
         print(f"====> {key}")
         while len(k) > 0:
+
+            # the "answered_at" attribute of the previous activity
+            end_act_1 = activities_dict[f"{prev_activity[1]}"][3]
+
+            # obtain the current activity at the top of the heap
             curr_activity = heappop(k)
-            print(f"--{curr_activity[1]}")
+            start_act_2 = activities_dict[f"{curr_activity[1]}"][2]
+
+            # calculate how much time is between the previous and current sessions
+            gap = start_act_2.timestamp() - end_act_1.timestamp()
+
+            print(gap)
+
+            if gap >= 300:
+                print("gap between activity1 and activity 2 is too big")
+
+            prev_activity = curr_activity
 
 insert_activites()
 build_user_sessions()
